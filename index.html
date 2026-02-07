@@ -1,0 +1,605 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=0.9" />
+  <title>Företagsregister</title>
+
+  <!-- DataTables -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-dt@2.0.8/css/dataTables.dataTables.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-responsive-dt@2.5.0/css/responsive.dataTables.min.css">
+
+
+  <style>
+    table.dataTable td { user-select: text; cursor: copy; }
+    :root{
+      --bg:#0b0d10;
+      --card:#11151b;
+      --text:#e9eef5;
+      --muted:#a9b4c2;
+      --border:#263241;
+      --shadow: rgba(0,0,0,0.35);
+      --pill:#121a24;
+      --input:#0f141c;
+      --link:#69a7ff;
+    }
+    body.light{
+      --bg:#fafafa;
+      --card:#ffffff;
+      --text:#111;
+      --muted:#666;
+      --border:#e8e8e8;
+      --shadow: rgba(0,0,0,0.04);
+      --pill:#f2f2f2;
+      --input:#ffffff;
+      --link:#0b5bd3;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    .wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 18px 14px 28px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 10px 30px var(--shadow);
+      padding: 16px;
+    }
+
+    header {
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap: 6px;
+      margin-bottom: 14px;
+      text-align:center;
+    }
+    header h1 { margin:0; font-size: 20px; font-weight: 700; }
+    header p { margin:0; color: var(--muted); font-size: 13px; }
+
+    .topbar {
+      display:flex;
+      gap: 10px;
+      align-items:center;
+      justify-content:center;
+      flex-wrap:wrap;
+      margin-top: 2px;
+    }
+
+    .status {
+      display:inline-block;
+      font-size: 12px;
+      color: var(--muted);
+      background: var(--pill);
+      padding: 3px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+    }
+
+    .controls {
+      display:flex;
+      flex-wrap:wrap;
+      gap: 10px 12px;
+      align-items:flex-end;
+      justify-content:center;
+      margin: 12px 0 14px;
+    }
+
+    label {
+      display:flex;
+      flex-direction:column;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--muted);
+      min-width: 240px;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      font-size: 14px;
+      background: var(--input);
+      color: var(--text);
+      outline: none;
+    }
+    input:focus { border-color: #3b4a5d; }
+
+    .range {
+      display:flex;
+      gap: 8px;
+    }
+    .range input { min-width: 116px; }
+
+    .btn {
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--input);
+      cursor:pointer;
+      font-size: 14px;
+      color: var(--text);
+      white-space: nowrap;
+    }
+    .btn:hover { filter: brightness(1.06); }
+
+    /* Table: avoid horizontal scroll */
+    table.dataTable {
+      width: 100% !important;
+      table-layout: fixed;
+      background: transparent;
+    }
+    table.dataTable th, table.dataTable td {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      vertical-align: middle;
+      border-color: var(--border) !important;
+    }
+
+    /* Fixed row height */
+    table.dataTable tbody td {
+      height: 42px;
+      line-height: 42px;
+      padding-top: 0 !important;
+      padding-bottom: 0 !important;
+    }
+
+    table.dataTable thead th {
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: .02em;
+      border-color: var(--border) !important;
+    }
+
+    /* DataTables UI (length/info/paging) to match theme */
+    .dt-container { color: var(--text); }
+    .dt-length select, .dt-paging button {
+      background: var(--input) !important;
+      color: var(--text) !important;
+      border: 1px solid var(--border) !important;
+      border-radius: 10px !important;
+      padding: 6px 10px !important;
+    }
+    .dt-length label, .dt-info { color: var(--muted) !important; }
+    .dt-paging button:hover { filter: brightness(1.06); }
+    .dt-paging button.current { outline: none !important; border-color: #3b4a5d !important; }
+    .dt-layout-row { margin-top: 10px; }
+
+    a.link {
+      color: var(--link);
+      text-decoration: none;
+    }
+    a.link:hover { text-decoration: underline; }
+
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+
+    /* Expand control column */
+    th.dt-control, td.dt-control {
+      width: 38px !important;
+      max-width: 38px !important;
+      text-align: center !important;
+      cursor: pointer;
+      user-select: none;
+    }
+    td.dt-control .arrow {
+      display:inline-block;
+      width: 20px;
+      height: 20px;
+      line-height: 20px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--input);
+      color: var(--muted);
+      font-size: 12px;
+    }
+    tr.shown td.dt-control .arrow { transform: rotate(180deg); }
+
+    /* Details row: fixed height (same for all expanded rows) */
+    tr.details-row td {
+      padding: 10px 12px !important;
+      line-height: 1.25 !important;
+      white-space: normal !important;
+      height: auto !important;
+      background: rgba(255,255,255,0.02);
+    }
+    body.light tr.details-row td { background: #fafafa; }
+
+    .details-box{
+      max-height: 140px;          /* fixed cap */
+      overflow: auto;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      background: transparent;
+    }
+    .kv{
+      display:grid;
+      grid-template-columns: 220px 1fr;
+      gap: 6px 12px;
+      font-size: 13px;
+    }
+    .kv .k{ color: var(--muted); }
+    .kv .v{ color: var(--text); overflow-wrap:anywhere; }
+
+    .footer {
+      text-align:center;
+      color: var(--muted);
+      font-size: 8px;
+      margin-top: 45px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="card">
+      <header>
+        <h1>Företagsregister</h1>
+        <p>Sök och sortera på namn, organisationsnummer, omsättning och webbplats. Klicka på pilen för att visa mer information.</p>
+        <div class="topbar">
+          <span id="status" class="status">Laddar…</span>
+          <button id="themeBtn" class="btn" type="button" aria-label="Toggle theme">Dark mode</button>
+        </div>
+      </header>
+
+      <div class="controls">
+        <label>
+          Sök
+          <input id="q" type="search" placeholder="Type to search…" />
+        </label>
+
+        <label>
+          Omsättning (tkr) filter
+          <div class="range">
+            <input id="revMin" inputmode="numeric" placeholder="Min" />
+            <input id="revMax" inputmode="numeric" placeholder="Max" />
+          </div>
+        </label>
+
+        <button id="clearBtn" class="btn" type="button">Rensa</button>
+        <button id="downloadBtn" class="btn" type="button">Ladda ned CSV</button>
+      </div>
+
+      <table id="tbl" class="display">
+        <thead>
+          <tr id="hdr"></tr>
+        </thead>
+        <tbody id="body"></tbody>
+      </table>
+
+      <div class="footer">
+        
+      </div>
+    </div>
+  </div>
+
+  <!-- deps -->
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net@2.0.8/js/dataTables.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/datatables.net-responsive@2.5.0/js/dataTables.responsive.min.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+  <script>
+    // -----------------------
+    // CONFIG
+    // -----------------------
+    const DISPLAY_COLUMNS = ["name", "org_number", "revenue","postal_address", "website"]; // shown in table
+    //const DISPLAY_COLUMNS = ["name", "revenue", "org_number"]; 
+    const CSV_PATH = "./out.csv";                                        // file next to index.html
+
+    // If you want to exclude some columns from expanded details, add them here:
+    const DETAILS_EXCLUDE = new Set([]); // e.g. new Set(["emails"])
+
+    // -----------------------
+    const statusEl = document.getElementById("status");
+    const qEl = document.getElementById("q");
+    const revMinEl = document.getElementById("revMin");
+    const revMaxEl = document.getElementById("revMax");
+    const clearBtn = document.getElementById("clearBtn");
+    const downloadBtn = document.getElementById("downloadBtn");
+    const themeBtn = document.getElementById("themeBtn");
+
+    let dt = null;
+    let rows = [];              // full rows (objects)
+    let displayRows = [];       // restricted to DISPLAY_COLUMNS
+    let allColumns = [];        // all CSV fields
+    let displayCols = DISPLAY_COLUMNS.slice();
+
+    function setStatus(t){ statusEl.textContent = t; }
+
+    function normNumber(s){
+      if (s === null || s === undefined) return NaN;
+      const str = String(s).replace(/\u00A0/g, " ").trim(); // NBSP -> space
+      if (!str || str.toLowerCase() === "nan") return NaN;
+      const digits = str.replace(/[^\d]/g, "");
+      return digits ? Number(digits) : NaN;
+    }
+
+    function prettyWebsite(url){
+      const s = (url ?? "").toString().trim();
+      if (!s || s.toLowerCase() === "nan") return "";
+      try {
+        const u = new URL(s.startsWith("http") ? s : ("https://" + s));
+        const parts = u.pathname.split("/").filter(Boolean);
+        const shortPath = parts.length ? ("/" + parts[0] + (parts.length > 1 ? "/…" : "")) : "";
+        return u.hostname + shortPath;
+      } catch {
+        return s;
+      }
+    }
+
+    function isEmpty(v){
+      const s = (v ?? "").toString().trim();
+      return !s || s.toLowerCase() === "nan" || s === "[]";
+    }
+
+    function escapeHtml(s){
+      return String(s)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    function renderDetails(fullRow){
+      // Show all fields not in DISPLAY_COLUMNS, keeping a consistent order.
+      const fields = allColumns.filter(c => !displayCols.includes(c) && !DETAILS_EXCLUDE.has(c));
+
+      const items = fields
+        .map(k => ({ k, v: fullRow[k] ?? "" }))
+        .filter(x => !isEmpty(x.v));
+
+      if (!items.length) {
+        return `<div class="details-box"><div class="kv"><div class="k">Details</div><div class="v">(no additional fields)</div></div></div>`;
+      }
+
+      const html = items.map(({k,v}) => {
+        let val = String(v);
+        // render URL-like values as links
+        const looksLikeUrl = /^https?:\/\//i.test(val.trim());
+        if (looksLikeUrl) {
+          const safe = escapeHtml(val.trim());
+          return `<div class="k">${escapeHtml(k)}</div><div class="v"><a class="link" target="_blank" rel="noopener noreferrer" href="${safe}">${safe}</a></div>`;
+        }
+        return `<div class="k">${escapeHtml(k)}</div><div class="v">${escapeHtml(val)}</div>`;
+      }).join("");
+
+      return `<div class="details-box"><div class="kv">${html}</div></div>`;
+    }
+
+    function buildTable(){
+      // Header: add expand-control column first
+      const hdr = document.getElementById("hdr");
+      hdr.innerHTML = "";
+
+      const th0 = document.createElement("th");
+      th0.className = "dt-control";
+      th0.title = "Expand";
+      th0.textContent = "";
+      hdr.appendChild(th0);
+
+      displayCols.forEach(c => {
+        const th = document.createElement("th");
+        th.textContent = c;
+        hdr.appendChild(th);
+      });
+
+      // Body
+      const body = document.getElementById("body");
+      body.innerHTML = "";
+
+      displayRows.forEach(r => {
+        const tr = document.createElement("tr");
+
+        // expand control cell
+        const tdCtl = document.createElement("td");
+        tdCtl.className = "dt-control";
+        tdCtl.innerHTML = '<span class="arrow">▾</span>';
+        tr.appendChild(tdCtl);
+
+        displayCols.forEach(c => {
+          const td = document.createElement("td");
+
+          if (c === "website") {
+            const raw = (r[c] ?? "").toString().trim();
+            if (raw && raw.toLowerCase() !== "nan") {
+              const a = document.createElement("a");
+              a.className = "link";
+              a.href = raw;
+              a.target = "_blank";
+              a.rel = "noopener noreferrer";
+              a.textContent = prettyWebsite(raw);
+              td.appendChild(a);
+            } else {
+              td.textContent = "";
+            }
+          } else if (c === "revenue") {
+            const n = normNumber(r[c]);
+            td.textContent = (r[c] ?? "").toString();
+            if (!Number.isNaN(n)) td.setAttribute("data-order", String(n));
+            td.classList.add("mono");
+          } else if (c.toLowerCase().includes("org")) {
+            td.textContent = (r[c] ?? "").toString();
+            td.classList.add("mono");
+          } else {
+            td.textContent = (r[c] ?? "").toString();
+          }
+
+          tr.appendChild(td);
+        });
+
+        body.appendChild(tr);
+      });
+    }
+
+    function initDataTable(){
+      if (dt) { dt.destroy(); dt = null; }
+
+      // Revenue filter
+      DataTable.ext.search.push((settings, data, dataIndex) => {
+        const revIdx = 1 + displayCols.indexOf("revenue"); // +1 for control column
+        if (revIdx <= 0) return true;
+
+        const revCell = data[revIdx] ?? "";
+        const revenue = normNumber(revCell);
+
+        const min = normNumber(revMinEl.value);
+        const max = normNumber(revMaxEl.value);
+
+        if (!Number.isNaN(min) && (Number.isNaN(revenue) || revenue < min)) return false;
+        if (!Number.isNaN(max) && (Number.isNaN(revenue) || revenue > max)) return false;
+
+        return true;
+      });
+
+      dt = new DataTable("#tbl", {
+        pageLength: 25,
+        lengthMenu: [10, 25, 50, 100, 250, 500, 1000],
+        order: [[3, "desc"]],
+        deferRender: true,
+        dom: "ltip",
+        autoWidth: false,
+        columnDefs: [
+          { targets: 0, width: "40px"  },  // expand arrow
+          { targets: 1, width: "25%"   },  // name
+          { targets: 2, width: "13%"   },  // org_number
+          { targets: 3, width: "10%"   },  // revenue
+          { targets: 4, width: "27%"   },
+          { targets: 4, width: "25%"   }   // website
+             // website
+        ]
+      });
+
+      // Simplified global search (only the displayed columns are in the table, so it searches only those)
+      qEl.addEventListener("input", () => dt.search(qEl.value || "").draw(), { passive: true });
+
+      function onRevChange(){ dt.draw(); }
+      revMinEl.addEventListener("input", onRevChange, { passive: true });
+      revMaxEl.addEventListener("input", onRevChange, { passive: true });
+
+      clearBtn.onclick = () => {
+        qEl.value = "";
+        revMinEl.value = "";
+        revMaxEl.value = "";
+        dt.search("");
+        dt.draw();
+      };
+
+      downloadBtn.onclick = downloadFilteredCSV;
+
+      // Row expand/collapse
+      const tableEl = document.getElementById("tbl");
+      tableEl.addEventListener("click", (ev) => {
+        const td = ev.target.closest("td.dt-control");
+        if (!td) return;
+
+        const tr = td.closest("tr");
+        const row = dt.row(tr);
+
+        if (row.child.isShown()) {
+          row.child.hide();
+          tr.classList.remove("shown");
+        } else {
+          const idx = row.index();              // displayRows index
+          const full = rows[idx] || {};
+          row.child(`<div class="details-row-inner">${renderDetails(full)}</div>`, "details-row").show();
+          tr.classList.add("shown");
+        }
+      });
+
+      setStatus(`Loaded: ${displayRows.length} rows`);
+    }
+
+    function downloadFilteredCSV(){
+      if (!dt) return;
+
+      const idxs = dt.rows({ search: "applied" }).indexes().toArray();
+      const filtered = idxs.map(i => displayRows[i]);
+
+      // include only displayed columns (not control col)
+      const csv = Papa.unparse(filtered, { columns: displayCols });
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "filtered_companies.csv";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function loadCSV(){
+      setStatus("Loading…");
+
+      Papa.parse(CSV_PATH, {
+        download: true,
+        header: true,
+        skipEmptyLines: true,
+        complete: (res) => {
+          rows = res.data || [];
+          allColumns = res.meta?.fields || [];
+
+          // Restrict to selected columns for main table
+          displayRows = rows.map(r => {
+            const o = {};
+            displayCols.forEach(c => o[c] = (r[c] ?? ""));
+            return o;
+          });
+
+          buildTable();
+          initDataTable();
+        },
+        error: (err) => {
+          console.error(err);
+          setStatus("Failed to load CSV");
+          alert("Failed to load out.csv. Ensure it is committed next to index.html (GitHub Pages).");
+        },
+      });
+    }
+
+    // Theme handling
+    function applyTheme(mode){
+      // mode: "dark" or "light"
+      const isLight = (mode === "light");
+      document.body.classList.toggle("light", isLight);
+      themeBtn.textContent = isLight ? "Dark mode" : "Light mode";
+      localStorage.setItem("theme", mode);
+    }
+
+    (function initTheme(){
+      const saved = localStorage.getItem("theme");
+      if (saved === "light" || saved === "dark") {
+        applyTheme(saved);
+      } else {
+        // default: follow system preference
+        const prefersLight = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
+        applyTheme(prefersLight ? "light" : "dark");
+      }
+    })();
+
+    themeBtn.addEventListener("click", () => {
+      const isLight = document.body.classList.contains("light");
+      applyTheme(isLight ? "dark" : "light");
+    });
+
+    loadCSV();
+  </script>
+</body>
+</html>
