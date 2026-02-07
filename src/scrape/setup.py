@@ -23,7 +23,7 @@ class AllaBolag(Enum):
 # ===============================
 class Website(Enum):
     URL = "https://api.search.brave.com/res/v1/web/search"
-    API_KEY = "BSArV_h6dUXhXZfdkkOcFpg3bCBrups" 
+    API_KEY = "" 
     QUERY_ADDITION = "Örebro"
     WEBSITE_EXCLUSIONS = [
         "allabolag.se",
@@ -59,10 +59,10 @@ class Website(Enum):
     }
     
 class GoogleSearch(Enum):
-    URL = "https://www.googleapis.com/customsearch/v1" #"https://cse.google.com/cse?cx=e021af8ccb766465f" #"https://www.googleapis.com/customsearch/v1"
+    URL = "https://www.googleapis.com/customsearch/v1" 
     # Best practice: keep secrets in env vars
-    API_KEY = "AIzaSyDfp-knD0xsmuLHMH1bqYTKnqn7i5HG3Yk" # "AIzaSyCK9oDbKkNvNkLof0ppV33quaz8tqt8lRs" # 
-    CX = "e021af8ccb766465f"
+    API_KEY = ""
+    CX = ""
     # Domains that are rarely the official website
     WEBSITE_EXCLUSIONS = [
         # Directories / company info
